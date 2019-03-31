@@ -2,13 +2,11 @@ package fruitMarketPackage;
 
 import java.util.Date;
 import java.util.GregorianCalendar;
-import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
         FruitMarket fruitMarket = new FruitMarket();
-        fruitMarket.createSomeDeliveries(5);
-        List<Delivery> deliveries = null;
+        fruitMarket.createSomeDeliveries(10);
         fruitMarket.saveToJsonInFile("delivery.txt");
         fruitMarket.getFruitsStorage().stream().
                 forEach(System.out::println);
@@ -17,7 +15,7 @@ public class Main {
         fruitMarket.availableFruits(dateToCheck).stream()
                 .forEach(System.out::println);
         System.out.println("\n");
-        fruitMarket.spoiledFruits(dateToCheck).stream()
+        fruitMarket.spoiledFruits(dateToCheck, FruitsNoShell.BANANA).stream()
                 .forEach(System.out::println);
     }
 }
