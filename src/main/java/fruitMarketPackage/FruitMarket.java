@@ -7,11 +7,17 @@ import org.apache.log4j.Logger;
 
 import java.io.File;
 import java.io.IOException;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Random;
+import java.util.stream.Collectors;
 
 public class FruitMarket {
     @Getter
@@ -24,7 +30,7 @@ public class FruitMarket {
         Delivery delivery = null;
         for (int i = 0; i < howMany; i++) {
             delivery = new Delivery();
-            delivery.setDateOfDelivery(LocalDateTime.now().minusDays(rnd.nextInt(20))
+            delivery.setDateOfDelivery(LocalDateTime.now().minusDays(rnd.nextInt(20) + 10)
                     .format(DateTimeFormatter.ofPattern("dd-MM-yy")));
             delivery.setFruits(FruitsNoShell.APPLE);
             delivery.setLifeShell(rnd.nextInt(10) + 5);
@@ -74,5 +80,33 @@ public class FruitMarket {
     public void addFruitsToStorage(String pathToJsonFile) {
         List<Delivery> fromFileJson = loadFromJsonFromFile(pathToJsonFile);
         fruitsStorage.addAll(fromFileJson);
+    }
+
+    public List<Delivery> availableFruits(Date date) {
+        final LocalDate localDate = convertDateToLocal(date);
+
+        return fruitsStorage.stream()
+                .filter((a) -> {
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yy");
+                    return LocalDate.parse(a.getDateOfDelivery(), DateTimeFormatter.ofPattern("dd-MM-yy"))
+                            .plusDays(a.getLifeShell()).isAfter(localDate);
+                }).collect(Collectors.toList());
+    }
+
+    public List<Delivery> spoiledFruits(Date date) {
+        final LocalDate localDate = convertDateToLocal(date);
+
+        return fruitsStorage.stream()
+                .filter((a) -> {
+                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yy");
+                    return LocalDate.parse(a.getDateOfDelivery(), DateTimeFormatter.ofPattern("dd-MM-yy"))
+                            .plusDays(a.getLifeShell()).isBefore(localDate);
+                }).collect(Collectors.toList());
+    }
+
+    private LocalDate convertDateToLocal(Date dateToConvert) {
+        return dateToConvert.toInstant()
+                .atZone(ZoneId.systemDefault())
+                .toLocalDate();
     }
 }

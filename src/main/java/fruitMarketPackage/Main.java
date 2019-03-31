@@ -1,16 +1,23 @@
 package fruitMarketPackage;
 
-import java.io.IOException;
+import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.List;
 
 public class Main {
     public static void main(String[] args) {
         FruitMarket fruitMarket = new FruitMarket();
-        fruitMarket.createSomeDeliveries(2);
+        fruitMarket.createSomeDeliveries(5);
         List<Delivery> deliveries = null;
-        fruitMarket.saveToJsonInFile();
-        fruitMarket.loadFromJsonFromFile("C:\\Users\\Sergey\\IdeaProjects\\HomeWork10\\delivery1.txt");
+        fruitMarket.saveToJsonInFile("delivery.txt");
         fruitMarket.getFruitsStorage().stream().
-                forEach(a -> System.out.println(a));
+                forEach(System.out::println);
+        System.out.println("\n");
+        Date dateToCheck = new GregorianCalendar(2019, 2, 21).getTime();
+        fruitMarket.availableFruits(dateToCheck).stream()
+                .forEach(System.out::println);
+        System.out.println("\n");
+        fruitMarket.spoiledFruits(dateToCheck).stream()
+                .forEach(System.out::println);
     }
 }
