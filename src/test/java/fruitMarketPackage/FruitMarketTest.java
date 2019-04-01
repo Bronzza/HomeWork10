@@ -21,9 +21,9 @@ public class FruitMarketTest {
 
     @Test
     public void saveToJsonInFile() {
-        assertEquals(fruitMarket.getFruitsStorage().get(0).getFruits(),
+        assertEquals(fruitMarket.getFruitStorage().get(0).getFruits(),
                 fruitMarket.loadFromJsonFromFile("testSave.txt").get(0).getFruits());
-        assertEquals(fruitMarket.getFruitsStorage().get(0).getDateOfDelivery(),
+        assertEquals(fruitMarket.getFruitStorage().get(0).getDateOfDelivery(),
                 fruitMarket.loadFromJsonFromFile("testSave.txt").get(0).getDateOfDelivery());
 
     }
@@ -31,18 +31,18 @@ public class FruitMarketTest {
     @Test
     public void loadFromJsonFromFile() {
         fruitMarket.createSomeDeliveries(1);
-        String dateForTest = fruitMarket.getFruitsStorage().get(0).getDateOfDelivery();
+        String dateForTest = fruitMarket.getFruitStorage().get(0).getDateOfDelivery();
         fruitMarket.saveToJsonInFile("otherFile");
         fruitMarket.loadFromJsonFromFile("otherFile");
-        assertEquals(dateForTest, fruitMarket.getFruitsStorage().get(0).getDateOfDelivery());
+        assertEquals(dateForTest, fruitMarket.getFruitStorage().get(0).getDateOfDelivery());
     }
 
     @Test
     public void addFruitsToStorage() {
-        int sizeOfStorage = fruitMarket.getFruitsStorage().size();
+        int sizeOfStorage = fruitMarket.getFruitStorage().size();
         assertEquals(1, sizeOfStorage);
         fruitMarket.addFruitsToStorage("testSave.txt");
         sizeOfStorage++;
-        assertEquals(sizeOfStorage, fruitMarket.getFruitsStorage().size());
+        assertEquals(sizeOfStorage, fruitMarket.getFruitStorage().size());
     }
 }

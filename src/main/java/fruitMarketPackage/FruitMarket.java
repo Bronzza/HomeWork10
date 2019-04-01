@@ -1,7 +1,10 @@
 package fruitMarketPackage;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.ObjectWriter;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import lombok.Getter;
 import org.apache.log4j.Logger;
 
@@ -19,128 +22,102 @@ import java.util.stream.Collectors;
 
 public class FruitMarket {
     @Getter
-    private List<Delivery> fruitsStorage = new ArrayList<>();
+    private List<Delivery> fruitStorage = new ArrayList<>();
     private ObjectMapper objectMapper = new ObjectMapper();
-    private Logger localLoger = Logger.getLogger(FruitMarket.class);
+    private ObjectWriter objectWriter = objectMapper.writer();
+    private final static Logger LOCAL_LOGGER = Logger.getLogger(FruitMarket.class);
 
-    public void createSomeDeliveries(int howMany) {
+
+    public void createSomeDeliveries(int quantity) {
         Random rnd = new Random();
         Delivery delivery = null;
-        for (int i = 0; i < howMany; i++) {
-            delivery = new Delivery();
-            delivery.setDateOfDelivery(LocalDateTime.now().minusDays(rnd.nextInt(20) + 10)
+        Delivery deliveryFruit = null;
+        for (int i = 0; i < quantity; i++) {
+            deliveryFruit = new Delivery();
+            deliveryFruit.setDateOfDelivery(LocalDateTime.now().minusDays(rnd.nextInt(20) + 10)
                     .format(DateTimeFormatter.ofPattern("dd-MM-yy")));
-            delivery.setFruits(getSomeFruit(rnd.nextInt(FruitsNoShell.values().length)));
-            delivery.setLifeShell(rnd.nextInt(10) + 5);
-            delivery.setPrice(rnd.nextInt(25) + 25);
-            fruitsStorage.add(delivery);
+            deliveryFruit.setFruits(getSomeFruit(rnd.nextInt(Fruits.values().length)));
+            deliveryFruit.setPrice(rnd.nextInt(25) + 25);
+            fruitStorage.add(deliveryFruit);
         }
     }
 
-    private FruitsNoShell getSomeFruit(int numberOfFruit) {
+    private Fruits getSomeFruit(int numberOfFruit) {
         switch (numberOfFruit) {
             case 0:
-                return FruitsNoShell.APPLE;
+                return Fruits.APPLE;
             case 1:
-                return FruitsNoShell.BANANA;
+                return Fruits.BANANA;
             case 2:
-                return FruitsNoShell.PEAR;
+                return Fruits.PEAR;
             case 3:
-                return FruitsNoShell.PINEAPPLE;
+                return Fruits.PINEAPPLE;
             case 4:
-                return FruitsNoShell.STRAWBERRY;
+                return Fruits.STRAWBERRY;
             default:
-                localLoger.error("Incorrect input");
+                LOCAL_LOGGER.error("Incorrect input");
                 throw new IndexOutOfBoundsException();
         }
     }
 
-    private void saveToJsonInFile() {
-        try {
-            objectMapper.writeValue(new File("delivery.txt"), fruitsStorage);
-        } catch (IOException e) {
-            localLoger.error("IO Exception, delivery.txt wasn't found in your root package");
-        }
-    }
 
     public void saveToJsonInFile(String filePath) {
         try {
-            objectMapper.writeValue(new File(filePath), fruitsStorage);
+            objectWriter.with(SerializationFeature.WRITE_ENUMS_USING_TO_STRING)
+                    .writeValue(new File(filePath), fruitStorage);
         } catch (IOException e) {
-            localLoger.error("IO Exception, incorrect filePath");
+            LOCAL_LOGGER.error("IO Exception, incorrect filePath");
         }
-    }
-
-    private List<Delivery> loadFromJsonFromFile() {
-        try {
-            return objectMapper.readValue(new File("C:\\Users\\Sergey\\IdeaProjects\\HomeWork10\\delivery1.txt"),
-                    new TypeReference<List<Delivery>>() {
-                    });
-        } catch (IOException e) {
-            localLoger.error("IO Exception, delivery1.txt wasn't found in your root package");
-        }
-        return null;
     }
 
     public List<Delivery> loadFromJsonFromFile(String filePath) {
         try {
-            return objectMapper.readValue(new File(filePath),
-                    new TypeReference<List<Delivery>>() {
-                    });
+            return objectMapper.reader(DeserializationFeature.READ_ENUMS_USING_TO_STRING)
+                    .forType(new TypeReference<List<Delivery>>() {
+                    })
+                    .readValue(new File(filePath));
         } catch (IOException e) {
-            localLoger.error("IO Exception, incorrect filePath");
+            LOCAL_LOGGER.error("WTF");
         }
         return null;
     }
 
     public void addFruitsToStorage(String pathToJsonFile) {
         List<Delivery> fromFileJson = loadFromJsonFromFile(pathToJsonFile);
-        fruitsStorage.addAll(fromFileJson);
+        fruitStorage.addAll(fromFileJson);
     }
 
     public List<Delivery> availableFruits(Date date) {
         final LocalDate localDate = convertDateToLocal(date);
-
-        return fruitsStorage.stream()
+        return fruitStorage.stream()
                 .filter((a) -> {
                     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yy");
                     return LocalDate.parse(a.getDateOfDelivery(), DateTimeFormatter.ofPattern("dd-MM-yy"))
-                            .plusDays(a.getLifeShell()).isAfter(localDate);
+                            .plusDays(a.getFruits().getShelfLife()).isAfter(localDate);
                 }).collect(Collectors.toList());
     }
 
-    public List<Delivery> availableFruits(Date date, FruitsNoShell fruit) {
-        final LocalDate localDate = convertDateToLocal(date);
-
-        return fruitsStorage.stream()
-                .filter((a) -> {
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yy");
-                    return LocalDate.parse(a.getDateOfDelivery(), DateTimeFormatter.ofPattern("dd-MM-yy"))
-                            .plusDays(a.getLifeShell()).isAfter(localDate);
-                }).filter((a) -> a.getFruits().equals(fruit))
+    public List<Delivery> availableFruits(Date date, Fruits fruit) {
+        return availableFruits(date)
+                .stream()
+                .filter((a) -> a.getFruits().equals(fruit))
                 .collect(Collectors.toList());
     }
 
     public List<Delivery> spoiledFruits(Date date) {
         final LocalDate localDate = convertDateToLocal(date);
-
-        return fruitsStorage.stream()
+        return fruitStorage.stream()
                 .filter((a) -> {
                     DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yy");
                     return LocalDate.parse(a.getDateOfDelivery(), DateTimeFormatter.ofPattern("dd-MM-yy"))
-                            .plusDays(a.getLifeShell()).isBefore(localDate);
+                            .plusDays(a.getFruits().getShelfLife()).isBefore(localDate);
                 }).collect(Collectors.toList());
     }
 
-    public List<Delivery> spoiledFruits(Date date, FruitsNoShell fruit) {
-        final LocalDate localDate = convertDateToLocal(date);
-
-        return fruitsStorage.stream()
-                .filter((a) -> {
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yy");
-                    return LocalDate.parse(a.getDateOfDelivery(), DateTimeFormatter.ofPattern("dd-MM-yy"))
-                            .plusDays(a.getLifeShell()).isBefore(localDate);
-                }).filter((a) -> a.getFruits().equals(fruit))
+    public List<Delivery> spoiledFruits(Date date, Fruits fruit) {
+        return spoiledFruits(date)
+                .stream()
+                .filter((a) -> a.getFruits().equals(fruit))
                 .collect(Collectors.toList());
     }
 
