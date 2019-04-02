@@ -8,8 +8,8 @@ import static org.junit.Assert.assertEquals;
 
 public class FruitMarketTest {
 
-    ObjectMapper objectMapper;
-    FruitMarket fruitMarket;
+    private ObjectMapper objectMapper;
+    private FruitMarket fruitMarket;
 
     @Before
     public void setUp() {

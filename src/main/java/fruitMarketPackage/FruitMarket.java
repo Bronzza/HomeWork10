@@ -21,12 +21,13 @@ import java.util.Random;
 import java.util.stream.Collectors;
 
 public class FruitMarket {
+    private final static String TIME_FORMAT = "dd-MM-yy";
+    private final static Logger LOCAL_LOGGER = Logger.getLogger(FruitMarket.class);
+
     @Getter
     private List<Delivery> fruitStorage = new ArrayList<>();
     private ObjectMapper objectMapper = new ObjectMapper();
     private ObjectWriter objectWriter = objectMapper.writer();
-    private final static Logger LOCAL_LOGGER = Logger.getLogger(FruitMarket.class);
-
 
     public void createSomeDeliveries(int quantity) {
         Random rnd = new Random();
@@ -35,7 +36,7 @@ public class FruitMarket {
         for (int i = 0; i < quantity; i++) {
             deliveryFruit = new Delivery();
             deliveryFruit.setDateOfDelivery(LocalDateTime.now().minusDays(rnd.nextInt(20) + 10)
-                    .format(DateTimeFormatter.ofPattern("dd-MM-yy")));
+                    .format(DateTimeFormatter.ofPattern(TIME_FORMAT)));
             deliveryFruit.setFruits(getSomeFruit(rnd.nextInt(Fruits.values().length)));
             deliveryFruit.setPrice(rnd.nextInt(25) + 25);
             fruitStorage.add(deliveryFruit);
@@ -77,7 +78,7 @@ public class FruitMarket {
                     })
                     .readValue(new File(filePath));
         } catch (IOException e) {
-            LOCAL_LOGGER.error("WTF");
+            LOCAL_LOGGER.error("IO Exception, incorrect filePath");
         }
         return null;
     }
@@ -91,8 +92,7 @@ public class FruitMarket {
         final LocalDate localDate = convertDateToLocal(date);
         return fruitStorage.stream()
                 .filter((a) -> {
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yy");
-                    return LocalDate.parse(a.getDateOfDelivery(), DateTimeFormatter.ofPattern("dd-MM-yy"))
+                    return LocalDate.parse(a.getDateOfDelivery(), DateTimeFormatter.ofPattern(TIME_FORMAT))
                             .plusDays(a.getFruits().getShelfLife()).isAfter(localDate);
                 }).collect(Collectors.toList());
     }
@@ -108,8 +108,7 @@ public class FruitMarket {
         final LocalDate localDate = convertDateToLocal(date);
         return fruitStorage.stream()
                 .filter((a) -> {
-                    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MM-yy");
-                    return LocalDate.parse(a.getDateOfDelivery(), DateTimeFormatter.ofPattern("dd-MM-yy"))
+                    return LocalDate.parse(a.getDateOfDelivery(), DateTimeFormatter.ofPattern(TIME_FORMAT))
                             .plusDays(a.getFruits().getShelfLife()).isBefore(localDate);
                 }).collect(Collectors.toList());
     }
